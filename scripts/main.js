@@ -14,6 +14,8 @@ var debugList2Id = "602f969a21d0a08d91522b02";
 var debugCard1Id = "606b34e4d339918fdbedab87";
 var debugCard2Id = "606b34e9356874492a22893c";
 
+var isSendingRequests = false;
+
 
 
 function MoveCardToList1() {
@@ -24,10 +26,23 @@ function MoveCardToList2() {
     MoveCardToList(debugCard1Id, debugList2Id);
 }
 
+function StartSendingDebugRequests() {
+    MoveCardsFromInProgress();
+    if (isSendingRequests)
+        return;
+
+    isSendingRequests = true;
+    //setInterval(SendDebugRequest, 1000);
+}
+
 function SendDebugRequest()
 {
-    //GetCards(); 
-    //GetBoards();
+    if (CheckDate()) {
+        GetBoards();
+    }
+    else {
+        debug("Now is not the time for this shit!");
+    }
     //GetLists(debugBoardId);
     //GetCards(debugList1Id);
     //GetCards(debugList2Id);
@@ -42,6 +57,14 @@ function SendRequest(url, callback)
     http.send(null);
 }
 
+function CheckDate() {
+    let currentDate = new Date();
+    let cHours = currentDate.getHours();
+    let cMinutes = currentDate.getMinutes();
+
+    return (cHours > 18) && (cMinutes > 29);
+}
+
 function SendPutRequest(url, callback) {
     var http = new XMLHttpRequest();
 
@@ -51,13 +74,13 @@ function SendPutRequest(url, callback) {
 }
 
 function GetBoards() {
-    console.log("GetBoards");
+    debug("GetBoards");
     var url = "https://api.trello.com/1/members/me/boards?fields=name&key=" + api_key + "&token=" + debug_token;
     SendRequest(url, HandleBoardsRequest);
 }
 
 function GetLists(boardId) {
-    console.log("GetLists: " + boardId);
+    debug("GetLists: " + boardId);
 
     var url = "https://api.trello.com/1/boards/"+ boardId + "/lists?&key=" + api_key + "&token=" + debug_token;
     SendRequest(url, HandleListsRequest);
@@ -65,66 +88,110 @@ function GetLists(boardId) {
 
 function GetCards()
 {
-    console.log("GetCards");
+    debug("GetCards");
 
-    var url1 = "https://api.trello.com/1/lists/" + targetListListId + "/cards?fields=name,idMembers&key=" + api_key + "&token=" + debug_token;
-    var url2 = "https://api.trello.com/1/lists/" + targetListPauseId + "/cards?fields=name,idMembers&key=" + api_key + "&token=" + debug_token;
-    var url3 = "https://api.trello.com/1/lists/" + targetListInProgressId + "/cards?fields=name,idMembers&key=" + api_key + "&token=" + debug_token;
-    var url4 = "https://api.trello.com/1/lists/" + targetListDoneId + "/cards?fields=name,idMembers&key=" + api_key + "&token=" + debug_token;
-
-    SendRequest(url1, HandleCardsRequest);
-    SendRequest(url2, HandleCardsRequest);
-    SendRequest(url3, HandleCardsRequest);
-    SendRequest(url4, HandleCardsRequest);
+    GetCards(targetListListId);
+    GetCards(targetListPauseId);
+    GetCards(targetListInProgressId);
+    GetCards(targetListDoneId);
 }
 
-function GetCards(listId) {
+function GetCards(listId, callback) {
     var url1 = "https://api.trello.com/1/lists/" + listId + "/cards?fields=name,idMembers&key=" + api_key + "&token=" + debug_token;
-    SendRequest(url1, HandleCardsRequest);
+    SendRequest(url1, callback);
 }
 
 function HandleCardsRequest()
 {
     if (this.readyState == 4 && this.status == 200) {
-        console.log("HandleCardsRequest");
+        debug("HandleCardsRequest");
 
         var json = JSON.parse(this.responseText);
 
         for (var i = 0; i < json.length; i++) {
             if (json[i].idMembers.includes(targetMemberId))
-                console.log(json[i]);
+                debug(json[i]);
         }
     }
 }
 
-function MoveCardToList(cardId, listId) {
-    var url = "https://api.trello.com/1/cards/" + cardId + "?idList="+ listId +"&key=" + api_key + "&token=" + debug_token;
+function HandleCardsMoveRequest() {
+    if (this.readyState == 4 && this.status == 200) {
+
+        debug("HandleCardsMoveRequest");
+
+        var foundCards = new Array();
+
+        var json = JSON.parse(this.responseText);
+
+        for (var i = 0; i < json.length; i++) {
+            if (json[i].idMembers.includes(targetMemberId)) {
+                foundCards.push(json[i]);
+            }
+        }
+
+        if (foundCards.length > 0) {
+            MoveFoundCardsToList(foundCards, targetListPauseId);
+        }
+    }
+}
+
+function MoveFoundCardsToList(cards, listId) {
+    for (var i = 0; i < cards.length; i++) {
+
+        debug("MoveFoundCardsToList");
+        debug(cards[i]);
+
+        let index = i;
+        MoveCardToList(cards[index], listId);
+    }
+}
+
+function MoveCardToList(card, listId) {
+    debug("MoveCardToList:" + card.name)
+    var url = "https://api.trello.com/1/cards/" + card.id + "?idList="+ listId +"&key=" + api_key + "&token=" + debug_token;
     SendPutRequest(url);
 }
 
 function HandleCardMoveRequest() {
-    console.log("HandleCardMoveRequest");
+    debug("HandleCardMoveRequest");
     if (this.readyState == 4 && this.status == 200) {
-        console.log("Movement SUCCESS");
+        debug("Movement SUCCESS");
     }
 }
 
 function HandleBoardsRequest() {
     if (this.readyState == 4 && this.status == 200) {
-        console.log("HandleBoardsRequest");
+        debug("HandleBoardsRequest");
 
         var json = JSON.parse(this.responseText);
 
-        console.log(json);
+        debug(json);
     }
 }
 
 function HandleListsRequest() {
     if (this.readyState == 4 && this.status == 200) {
-        console.log("HandleListsRequest");
+        debug("HandleListsRequest");
 
         var json = JSON.parse(this.responseText);
 
-        console.log(json);
+        debug(json);
     }
+}
+
+function debug(info) {
+
+    console.log(info);
+
+    txt = document.createTextNode(info);
+    newline = document.createElement("div");
+    document.getElementsByClassName("info")[0].appendChild(newline);
+    document.getElementsByClassName("info")[0].appendChild(txt);
+}
+
+function MoveCardsFromInProgress() {
+    // find cards that are inside InProgress list
+    // move these cards to InPause list
+    GetCards(targetListInProgressId, HandleCardsMoveRequest);
 }
