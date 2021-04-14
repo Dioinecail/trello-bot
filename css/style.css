@@ -1,0 +1,55 @@
+.main{
+    margin-left:25%;
+    margin-right:25%;
+    height:600px;
+    display:grid;
+    grid-template-columns:1fr 2fr;
+}
+
+    .main .left-side {
+        margin: 5px;
+        background-color: aliceblue;
+        border: solid;
+        border-width: 2px;
+        border-radius: 5px;
+        border-color: grey;
+        grid-column: 1;
+        width: 350px;
+        height: 600px;
+    }
+
+    .main .right-side {
+        margin:5px;
+        background-color: bisque;
+        border: solid;
+        border-width: 2px;
+        border-radius:5px;
+        border-color:grey;
+        grid-column: 2;
+        height: auto;
+    }
+
+    .main .right-side *{
+        margin:5px;
+    }
+
+.ui-buttons {
+    display:grid;
+}
+
+    .ui-buttons * {
+        margin: auto;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        border: solid;
+        border-width: 2px;
+        border-radius: 4px;
+        border-color:dimgrey;
+        display: block;
+        height: 50px;
+        width: auto;
+    }
+
+    .ui-buttons *:hover{
+        background-color:darkcyan;
+    }

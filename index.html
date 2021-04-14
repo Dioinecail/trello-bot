@@ -1,18 +1,25 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <div class="ui-buttons">
-        <button type="button" onclick="StartSendingDebugRequests()">Start sending requests</button>
-
-        <button type="button" onclick="MoveCardToList1()">MoveCardToList1</button>
-
-        <button type="button" onclick="MoveCardToList2()">MoveCardToList2</button>
+    <div class="main">
+        <div class="left-side">
+            <div class="ui-buttons">
+                <button type="button" onclick="GetCardNamesFromDone()">Получить названия этих сраных карточек!</button>
+            </div>
+        </div>
+        <div class="right-side">
+            <div class="info">Chop chop</div>
+        </div>
     </div>
-    <div class="info">Chop chop</div>
 
+    <script src="scripts/globals.js"></script>
     <script src="scripts/main.js"></script>
+    <script src="scripts/formatter.js"></script>
 </body>
 </html>
